@@ -1,0 +1,7 @@
+# Allowed podcast feed hosts (one per line)
+# Only these hosts can be reached from the PodScrub container.
+# Add the hostname of each podcast feed URL from your config.yaml.
+#
+# Example:
+# feeds.example.com
+# cdn.podcast.org

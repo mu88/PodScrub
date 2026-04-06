@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/Solutions Items/">
+    <File Path=".editorconfig" />
+    <File Path=".github/workflows/CI_CD.yml" />
+    <File Path="CHANGELOG.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE.md" />
+    <File Path="README.md" />
+    <File Path="renovate.json5" />
+    <File Path="stryker-config.json" />
+  </Folder>
+  <Project Path="src/PodScrub.Domain/PodScrub.Domain.csproj" />
+  <Project Path="src/PodScrub.Application/PodScrub.Application.csproj" />
+  <Project Path="src/PodScrub.Infrastructure/PodScrub.Infrastructure.csproj" />
+  <Project Path="src/PodScrub.Api/PodScrub.Api.csproj" />
+  <Project Path="tests/Tests/Tests.csproj" />
+</Solution>

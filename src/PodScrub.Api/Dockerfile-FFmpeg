@@ -1,0 +1,9 @@
+FROM --platform=$TARGETARCH mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+ARG TARGETARCH
+WORKDIR /app
+
+USER root
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
+USER app

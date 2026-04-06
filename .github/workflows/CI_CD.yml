@@ -1,0 +1,41 @@
+name: Combined CI / Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  ffmpeg_base_image:
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'renovate/ffmpeg') || contains(github.ref, 'renovate/dotnet')
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Trigger FFmpeg base image build
+        uses: aurelien-baudet/workflow-dispatch@v4.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          wait-for-completion: true
+          workflow: FFmpeg
+
+  shared_ci_cd:
+    needs: ffmpeg_base_image
+    if: always() && (needs.ffmpeg_base_image.result == 'success' || needs.ffmpeg_base_image.result == 'skipped')
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+      packages: write
+
+    uses: mu88/common/.github/workflows/ci-cd.yml@74ae161be67791a743a890c0a0ee2a2088ef1042
+    with:
+      docker-attest-provenance-and-sbom: true
+      docker-publish-project: src/PodScrub.Api/PodScrub.Api.csproj
+      requires-docker-login: true
+      sonar-key: mu88_PodScrub
+      sonar-additional-params: '/d:sonar.cs.opencover.reportsPaths=tests/Tests/coverage.opencover.xml /s:$GITHUB_WORKSPACE/SonarQube.Analysis.xml'
+    secrets:
+      sonar-token: ${{ secrets.SONAR_TOKEN }}

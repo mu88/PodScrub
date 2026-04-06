@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CodeHollow.FeedReader" />
+    <PackageReference Include="FFMpegCore" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="SoundFingerprinting" />
+    <PackageReference Include="SoundFingerprinting.Emy" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PodScrub.Domain\PodScrub.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleTo Include="Tests" />
+  </ItemGroup>
+</Project>

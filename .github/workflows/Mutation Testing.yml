@@ -1,0 +1,32 @@
+name: Mutation Testing
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  mutation-testing:
+    runs-on: ubuntu-latest
+
+    env:
+      STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+          global-json-file: global.json
+
+      - name: Restore .NET tools
+        run: dotnet tool restore
+
+      - name: Run Stryker mutation testing
+        working-directory: src/PodScrub.Application
+        run: dotnet stryker

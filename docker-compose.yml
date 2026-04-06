@@ -1,0 +1,71 @@
+# PodScrub Docker Compose
+#
+# Network isolation:
+#   podscrub-internal (internal: true) — PodScrub cannot reach the internet directly
+#   The egress proxy bridges internal ↔ internet, allowing only configured podcast hosts
+#
+# Prerequisites:
+#   1. Configure feeds via environment variables or appsettings.json (see README.md)
+#   2. Create tinyproxy/filter with one allowed hostname per line
+#   3. Adjust PodScrub__BaseUrl to match your reverse proxy URL
+
+services:
+  podscrub:
+    image: ghcr.io/mu88/podscrub-api:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - podscrub-internal
+    volumes:
+      - podscrub-data:/app/data
+    environment:
+      - PodScrub__BaseUrl=http://my-server:8080
+      - PodScrub__PollIntervalMinutes=60
+      - PodScrub__DataPath=/app/data
+      - PodScrub__MaxEpisodesPerFeed=50
+      # Optional: path to an audio file used as transition tone between content segments
+      # - PodScrub__TransitionTonePath=/app/data/transition.mp3
+      # Feed configuration via indexed environment variables
+      - PodScrub__Feeds__0__Name=my-podcast
+      - PodScrub__Feeds__0__Url=https://example.com/feed.rss
+      - PodScrub__Feeds__0__ProcessLatest=20
+      - PodScrub__Feeds__0__Jingles__0__Type=InterludeStart
+      - PodScrub__Feeds__0__Jingles__0__Group=main-interlude
+      - PodScrub__Feeds__0__Jingles__0__SourceEpisode=https://example.com/episode123.mp3
+      - PodScrub__Feeds__0__Jingles__0__TimestampStart=00:12:34
+      - PodScrub__Feeds__0__Jingles__0__TimestampEnd=00:12:38
+      - PodScrub__Feeds__0__Jingles__1__Type=InterludeEnd
+      - PodScrub__Feeds__0__Jingles__1__Group=main-interlude
+      - PodScrub__Feeds__0__Jingles__1__SourceEpisode=https://example.com/episode123.mp3
+      - PodScrub__Feeds__0__Jingles__1__TimestampStart=00:15:00
+      - PodScrub__Feeds__0__Jingles__1__TimestampEnd=00:15:04
+      - http_proxy=http://egress-proxy:8888
+      - https_proxy=http://egress-proxy:8888
+    healthcheck:
+      test: ["CMD", "dotnet", "/app/mu88.HealthCheck.dll", "http://127.0.0.1:8080/podscrub/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - egress-proxy
+    restart: unless-stopped
+
+  egress-proxy:
+    image: monokal/tinyproxy:latest
+    networks:
+      - podscrub-internal
+      - egress
+    volumes:
+      - ./tinyproxy/filter:/etc/tinyproxy/filter:ro
+    environment:
+      - ALLOWED=0.0.0.0/0
+      - FILTERED=yes
+    restart: unless-stopped
+
+networks:
+  podscrub-internal:
+    internal: true
+  egress:
+
+volumes:
+  podscrub-data:

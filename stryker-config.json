@@ -1,0 +1,20 @@
+{
+  "stryker-config": {
+    "project": "PodScrub.Application.csproj",
+    "test-projects": [
+      "../../tests/Tests/Tests.csproj"
+    ],
+    "reporters": [
+      "html",
+      "progress",
+      "dashboard"
+    ],
+    "project-info": {
+      "name": "github.com/mu88/PodScrub"
+    },
+    "test-case-filter": "TestCategory=Unit",
+    "ignore-methods": [
+      "logger.*"
+    ]
+  }
+}
