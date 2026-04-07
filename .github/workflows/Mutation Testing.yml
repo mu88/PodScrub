@@ -5,13 +5,11 @@ on:
   push:
     branches:
       - main
+      - feature/ai-*
 
 jobs:
   mutation-testing:
     runs-on: ubuntu-latest
-
-    env:
-      STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
 
     steps:
       - name: Check out code
@@ -24,9 +22,23 @@ jobs:
           cache-dependency-path: '**/packages.lock.json'
           global-json-file: global.json
 
-      - name: Restore .NET tools
+      - name: Build
+        run: dotnet build
+
+      - name: Restore tools
         run: dotnet tool restore
 
-      - name: Run Stryker mutation testing
-        working-directory: src/PodScrub.Application
-        run: dotnet stryker
+      - name: Run mutation testing
+        run: |
+          cd src/PodScrub.Application
+          dotnet stryker \
+            --dashboard-api-key "${{ secrets.STRYKER_DASHBOARD_API_KEY }}" \
+            --version "${{ github.sha }}" \
+            --config-file ../../stryker-config.json \
+            --output ${{ runner.temp }}/Stryker/
+
+      - name: Archive mutation testing results
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-testing-report
+          path: ${{ runner.temp }}/Stryker/**/*.*

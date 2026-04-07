@@ -107,6 +107,7 @@ public class SystemTests
             _feedServer = new ContainerBuilder("nginx:alpine")
                 .WithNetwork(_network)
                 .WithNetworkAliases(feedServerAlias)
+                .WithPortBinding(80, true)
                 .WithResourceMapping(new DirectoryInfo(testDataDir), "/usr/share/nginx/html")
                 .WithWaitStrategy(Wait.ForUnixContainer()
                     .UntilHttpRequestIsSucceeded(request => request.ForPath("/feed.rss").ForPort(80)))
@@ -187,6 +188,7 @@ public class SystemTests
         return new ContainerBuilder($"podscrub-api:{containerImageTag}")
             .WithNetwork(network)
             .WithEnvironment("PodScrub__BaseUrl", "http://localhost:8080")
+            .WithEnvironment("PodScrub__DataPath", "/tmp/data")
             .WithEnvironment("PodScrub__PollIntervalMinutes", "60")
             .WithEnvironment("PodScrub__Feeds__0__Name", "test-podcast")
             .WithEnvironment("PodScrub__Feeds__0__Url", $"http://{feedServerAlias}/feed.rss")
@@ -250,6 +252,7 @@ public class SystemTests
         => new ContainerBuilder($"podscrub-api:{containerImageTag}")
             .WithNetwork(network)
             .WithEnvironment("PodScrub__BaseUrl", "http://localhost:8080")
+            .WithEnvironment("PodScrub__DataPath", "/tmp/data")
             .WithPortBinding(8080, true)
             .WithWaitStrategy(Wait.ForUnixContainer()
                 .UntilMessageIsLogged("Content root path: /app",

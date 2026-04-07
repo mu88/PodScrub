@@ -21,6 +21,12 @@ public class AudioProcessor : IAudioProcessor
         var wavFileName = Path.ChangeExtension(Path.GetFileName(inputPath), ".wav");
         var outputPath = Path.Combine(outputDirectory, wavFileName);
 
+        // FFmpeg cannot read and write to the same file
+        if (string.Equals(Path.GetFullPath(inputPath), Path.GetFullPath(outputPath), StringComparison.OrdinalIgnoreCase))
+        {
+            outputPath = Path.Combine(outputDirectory, Path.GetFileNameWithoutExtension(inputPath) + "_converted.wav");
+        }
+
         await FFMpegArguments
             .FromFileInput(inputPath, verifyExists: true)
             .OutputToFile(outputPath, overwrite: true, options => options

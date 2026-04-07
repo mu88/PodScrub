@@ -52,14 +52,6 @@ public class AllowListHttpMessageHandler : DelegatingHandler
             return true;
         }
 
-        foreach (var allowedHost in _allowedHosts)
-        {
-            if (host.EndsWith($".{allowedHost}", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return _allowedHosts.Any(allowedHost => host.EndsWith($".{allowedHost}", StringComparison.OrdinalIgnoreCase));
     }
 }

@@ -67,11 +67,11 @@ public partial class FeedPollingBackgroundService : BackgroundService
                     var jinglePath = await extractJingle.ExecuteAsync(jingle, jinglesDir, cancellationToken);
                     var jingleId = Path.GetFileNameWithoutExtension(jinglePath);
                     await _fingerprintEngine.StoreJingleFingerprintAsync(jinglePath, jingleId, cancellationToken);
-                    LogJingleInitialized(jingle.Type.ToString(), feed.Name);
+                    LogJingleInitialized(jingle.Type, feed.Name);
                 }
                 catch (Exception ex)
                 {
-                    LogJingleInitializationFailed(ex, jingle.Type.ToString(), feed.Name);
+                    LogJingleInitializationFailed(ex, jingle.Type, feed.Name);
                 }
             }
         }
@@ -108,10 +108,10 @@ public partial class FeedPollingBackgroundService : BackgroundService
     private partial void LogInitializingJingles();
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Jingle {type} for feed '{name}' initialized")]
-    private partial void LogJingleInitialized(string type, string name);
+    private partial void LogJingleInitialized(JingleType type, string name);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to initialize jingle {type} for feed '{name}'")]
-    private partial void LogJingleInitializationFailed(Exception ex, string type, string name);
+    private partial void LogJingleInitializationFailed(Exception ex, JingleType type, string name);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Feed polling service started, polling every {interval} minute(s)")]
     private partial void LogPollingStarted(int interval);
