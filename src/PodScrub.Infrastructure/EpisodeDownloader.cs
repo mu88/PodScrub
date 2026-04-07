@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
 using PodScrub.Domain;
 
 namespace PodScrub.Infrastructure;
@@ -15,12 +17,15 @@ public class EpisodeDownloader : IEpisodeDownloader
         Directory.CreateDirectory(targetDirectory);
 
         var uri = new Uri(url);
-        var fileName = Path.GetFileName(uri.LocalPath);
-        if (string.IsNullOrWhiteSpace(fileName))
+        var extension = Path.GetExtension(uri.LocalPath);
+        if (string.IsNullOrWhiteSpace(extension))
         {
-            fileName = $"{Guid.NewGuid():N}.mp3";
+            extension = ".mp3";
         }
 
+        // Use URL hash as filename to avoid collisions from CDNs using generic names like "audio.mp3"
+        var urlHash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(url)))[..16];
+        var fileName = $"{urlHash}{extension}";
         var targetPath = Path.Combine(targetDirectory, fileName);
 
         if (File.Exists(targetPath))
