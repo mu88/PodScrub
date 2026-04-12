@@ -115,7 +115,7 @@ public class AudioProcessor : IAudioProcessor
             return;
         }
 
-        var listFilePath = Path.Combine(Path.GetDirectoryName(outputPath)!, "concat_list.txt");
+        var listFilePath = Path.Combine(Path.GetDirectoryName(outputPath)!, $"concat_{Path.GetFileNameWithoutExtension(outputPath)}.txt");
         try
         {
             var lines = inputFiles.Select(file => $"file '{file.Replace("'", "'\\''", StringComparison.Ordinal)}'");

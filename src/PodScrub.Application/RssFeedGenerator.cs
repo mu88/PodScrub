@@ -5,7 +5,7 @@ namespace PodScrub.Application;
 
 public static class RssFeedGenerator
 {
-    public static string GenerateFeed(FeedMetadata metadata, IReadOnlyList<Episode> episodes, string baseUrl, string feedName)
+    public static string GenerateFeed(FeedMetadata metadata, IReadOnlyList<Episode> episodes, string baseUrl)
     {
         var itunesNs = XNamespace.Get("http://www.itunes.com/dtds/podcast-1.0.dtd");
 
@@ -32,7 +32,7 @@ public static class RssFeedGenerator
             var item = new XElement("item",
                 new XElement("title", displayTitle),
                 new XElement("pubDate", episode.PubDate.ToString("R")),
-                new XElement("guid", episode.Id),
+                new XElement("guid", new XAttribute("isPermaLink", "false"), episode.Id),
                 new XElement("enclosure",
                     new XAttribute("url", audioUrl),
                     new XAttribute("type", "audio/mpeg")));

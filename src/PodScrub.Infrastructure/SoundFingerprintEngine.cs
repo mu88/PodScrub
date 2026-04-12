@@ -24,6 +24,7 @@ public sealed partial class SoundFingerprintEngine : IFingerprintEngine
 
     public async Task StoreJingleFingerprintAsync(string jingleAudioPath, string jingleId, CancellationToken cancellationToken)
     {
+        // cancellationToken: SoundFingerprinting builder API does not expose cancellation — token is accepted for interface compliance only
         var hashes = await FingerprintCommandBuilder.Instance
             .BuildFingerprintCommand()
             .From(jingleAudioPath)
@@ -36,6 +37,7 @@ public sealed partial class SoundFingerprintEngine : IFingerprintEngine
 
     public async Task<IReadOnlyList<TimeSpan>> FindJingleMatchesAsync(string episodeAudioPath, string jingleId, CancellationToken cancellationToken)
     {
+        // cancellationToken: SoundFingerprinting builder API does not expose cancellation — token is accepted for interface compliance only
         var result = await QueryCommandBuilder.Instance
             .BuildQueryCommand()
             .From(episodeAudioPath)

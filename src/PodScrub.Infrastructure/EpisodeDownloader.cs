@@ -1,6 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
-using System.Text;
 using PodScrub.Domain;
 
 namespace PodScrub.Infrastructure;
@@ -12,20 +10,10 @@ public class EpisodeDownloader : IEpisodeDownloader
 
     public EpisodeDownloader(HttpClient httpClient) => _httpClient = httpClient;
 
-    public async Task<string> DownloadEpisodeAsync(string url, string targetDirectory, CancellationToken cancellationToken)
+    public async Task<string> DownloadEpisodeAsync(string url, string targetDirectory, string fileName, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(targetDirectory);
 
-        var uri = new Uri(url);
-        var extension = Path.GetExtension(uri.LocalPath);
-        if (string.IsNullOrWhiteSpace(extension))
-        {
-            extension = ".mp3";
-        }
-
-        // Use URL hash as filename to avoid collisions from CDNs using generic names like "audio.mp3"
-        var urlHash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(url)))[..16];
-        var fileName = $"{urlHash}{extension}";
         var targetPath = Path.Combine(targetDirectory, fileName);
 
         if (File.Exists(targetPath))

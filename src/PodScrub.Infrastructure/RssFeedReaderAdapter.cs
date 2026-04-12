@@ -1,16 +1,22 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Linq;
 using CodeHollow.FeedReader;
+using Microsoft.Extensions.Logging;
 using PodScrub.Domain;
 
 namespace PodScrub.Infrastructure;
 
 [ExcludeFromCodeCoverage]
-public class RssFeedReaderAdapter : IRssFeedReader
+public partial class RssFeedReaderAdapter : IRssFeedReader
 {
     private readonly HttpClient _httpClient;
+    private readonly ILogger<RssFeedReaderAdapter> _logger;
 
-    public RssFeedReaderAdapter(HttpClient httpClient) => _httpClient = httpClient;
+    public RssFeedReaderAdapter(HttpClient httpClient, ILogger<RssFeedReaderAdapter> logger)
+    {
+        _httpClient = httpClient;
+        _logger = logger;
+    }
 
     public async Task<FeedMetadata> ReadFeedMetadataAsync(string feedUrl, CancellationToken cancellationToken)
     {
@@ -31,14 +37,24 @@ public class RssFeedReaderAdapter : IRssFeedReader
 
         return feed.Items
             .Where(item => GetEnclosureUrl(item) is not null)
-            .Select(item => new Domain.FeedItem(
-                item.Id ?? item.Link ?? Guid.NewGuid().ToString("N"),
-                item.Title ?? string.Empty,
-                GetEnclosureUrl(item)!,
-                item.PublishingDate ?? DateTimeOffset.MinValue,
-                item.Description,
-                GetEpisodeImageUrl(item),
-                ParseDuration(item)))
+            .Select(item =>
+            {
+                var id = item.Id ?? item.Link;
+                if (id is null)
+                {
+                    LogMissingItemId(feedUrl);
+                    id = Guid.NewGuid().ToString("N");
+                }
+
+                return new Domain.FeedItem(
+                    id,
+                    item.Title ?? string.Empty,
+                    GetEnclosureUrl(item)!,
+                    item.PublishingDate ?? DateTimeOffset.MinValue,
+                    item.Description,
+                    GetEpisodeImageUrl(item),
+                    ParseDuration(item));
+            })
             .ToList();
     }
 
@@ -81,4 +97,7 @@ public class RssFeedReaderAdapter : IRssFeedReader
 
         return enclosureElement?.Attribute("url")?.Value;
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Feed item from '{feedUrl}' has no id or link — assigning a random GUID. This item will be reprocessed on every poll cycle.")]
+    private partial void LogMissingItemId(string feedUrl);
 }

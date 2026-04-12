@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PodScrub.Domain;
@@ -31,12 +32,29 @@ public partial class ProcessEpisodeUseCase
 
     public virtual async Task<Episode> ExecuteAsync(Episode episode, IReadOnlyList<Jingle> jingles, string outputDirectory, CancellationToken cancellationToken)
     {
+        using var activity = PodScrubTelemetry.ActivitySource.StartActivity("process-episode");
+        activity?.SetTag("episode.id", episode.Id);
+        activity?.SetTag("episode.title", episode.Title);
+
+        var processedDir = Path.Combine(outputDirectory, "processed");
+        _fileSystem.CreateDirectory(processedDir);
+        var processedPath = Path.Combine(processedDir, $"{episode.Id}.mp3");
+
+        // Skip if already processed from a previous run (restart resilience)
+        if (_fileSystem.FileExists(processedPath))
+        {
+            LogAlreadyProcessed(episode.Title);
+            var segmentsRemoved = ReadSidecarSegments(processedPath);
+            episode.MarkProcessed(processedPath, segmentsRemoved);
+            return episode;
+        }
+
         LogProcessingEpisode(episode.Title);
 
         var downloadDir = Path.Combine(outputDirectory, "downloads");
-        Directory.CreateDirectory(downloadDir);
+        _fileSystem.CreateDirectory(downloadDir);
 
-        var episodePath = await _episodeDownloader.DownloadEpisodeAsync(episode.OriginalAudioUrl, downloadDir, cancellationToken);
+        var episodePath = await _episodeDownloader.DownloadEpisodeAsync(episode.OriginalAudioUrl, downloadDir, $"{episode.Id}.mp3", cancellationToken);
 
         var wavPath = await _audioProcessor.ConvertToWavAsync(episodePath, downloadDir, cancellationToken);
 
@@ -47,28 +65,48 @@ public partial class ProcessEpisodeUseCase
         if (segments.Count == 0)
         {
             LogNoSegmentsFound(episode.Title);
-            episode.MarkProcessed(episodePath);
+            _fileSystem.CopyFile(episodePath, processedPath);
+            episode.MarkProcessed(processedPath);
+            PodScrubTelemetry.EpisodesProcessed.Add(1);
             return episode;
         }
 
-        var processedDir = Path.Combine(outputDirectory, "processed");
-        Directory.CreateDirectory(processedDir);
-
-        var processedPath = Path.Combine(processedDir, $"{episode.Id}.mp3");
         await _audioProcessor.RemoveSegmentsAsync(episodePath, segments, processedPath, _options.Value.TransitionTonePath, cancellationToken);
 
-        CleanupOriginalFile(episodePath);
+        WriteSidecarSegments(processedPath, segments.Count);
 
         episode.MarkProcessed(processedPath, segments.Count);
+        PodScrubTelemetry.EpisodesProcessed.Add(1);
+        PodScrubTelemetry.SegmentsRemoved.Add(segments.Count);
 
         LogEpisodeProcessed(episode.Title, segments.Count);
 
         return episode;
     }
 
-    private void CleanupOriginalFile(string filePath)
+    private int ReadSidecarSegments(string processedPath)
     {
-        CleanupTemporaryFile(filePath);
+        var sidecarPath = Path.ChangeExtension(processedPath, ".json");
+        if (!_fileSystem.FileExists(sidecarPath))
+        {
+            return 0;
+        }
+
+        try
+        {
+            var sidecar = JsonSerializer.Deserialize<EpisodeSidecar>(_fileSystem.ReadAllText(sidecarPath));
+            return sidecar?.SegmentsRemoved ?? 0;
+        }
+        catch (JsonException)
+        {
+            return 0;
+        }
+    }
+
+    private void WriteSidecarSegments(string processedPath, int segmentsRemoved)
+    {
+        var sidecarPath = Path.ChangeExtension(processedPath, ".json");
+        _fileSystem.WriteAllText(sidecarPath, JsonSerializer.Serialize(new EpisodeSidecar(segmentsRemoved)));
     }
 
     private void CleanupTemporaryFile(string filePath)
@@ -90,6 +128,9 @@ public partial class ProcessEpisodeUseCase
     [LoggerMessage(Level = LogLevel.Information, Message = "Processing episode '{title}'")]
     private partial void LogProcessingEpisode(string title);
 
+    [LoggerMessage(Level = LogLevel.Information, Message = "Episode '{title}' already processed, skipping")]
+    private partial void LogAlreadyProcessed(string title);
+
     [LoggerMessage(Level = LogLevel.Information, Message = "No interludes found in '{title}', using original audio")]
     private partial void LogNoSegmentsFound(string title);
 
@@ -101,4 +142,6 @@ public partial class ProcessEpisodeUseCase
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to delete original download '{path}'")]
     private partial void LogCleanupFailed(IOException ex, string path);
+
+    private sealed record EpisodeSidecar(int SegmentsRemoved);
 }

@@ -1,10 +1,10 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using PodScrub.Application;
 using PodScrub.Domain;
 
-namespace PodScrub.Infrastructure;
+namespace PodScrub.Api;
 
 [ExcludeFromCodeCoverage]
 public partial class FeedPollingBackgroundService : BackgroundService
@@ -58,6 +58,8 @@ public partial class FeedPollingBackgroundService : BackgroundService
         var jinglesDir = Path.Combine(_options.Value.DataPath, "jingles");
         Directory.CreateDirectory(jinglesDir);
 
+        var extractedSourceFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var feed in _feeds)
         {
             foreach (var jingle in feed.Jingles)
@@ -68,12 +70,21 @@ public partial class FeedPollingBackgroundService : BackgroundService
                     var jingleId = Path.GetFileNameWithoutExtension(jinglePath);
                     await _fingerprintEngine.StoreJingleFingerprintAsync(jinglePath, jingleId, cancellationToken);
                     LogJingleInitialized(jingle.Type, feed.Name);
+
+                    // Track source file so it can be cleaned up after all jingles are extracted
+                    extractedSourceFiles.Add(Path.Combine(jinglesDir, $"{ExtractJingleUseCase.CreateUrlHash(jingle.SourceEpisodeUrl)}.mp3"));
                 }
                 catch (Exception ex)
                 {
                     LogJingleInitializationFailed(ex, jingle.Type, feed.Name);
                 }
             }
+        }
+
+        // Clean up source episode files now that all jingles have been extracted
+        foreach (var sourceFile in extractedSourceFiles)
+        {
+            CleanupSourceFile(sourceFile);
         }
     }
 
@@ -104,6 +115,21 @@ public partial class FeedPollingBackgroundService : BackgroundService
         }
     }
 
+    private void CleanupSourceFile(string filePath)
+    {
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch (IOException ex)
+        {
+            LogSourceCleanupFailed(ex, filePath);
+        }
+    }
+
     [LoggerMessage(Level = LogLevel.Information, Message = "Initializing jingle fingerprints")]
     private partial void LogInitializingJingles();
 
@@ -124,4 +150,7 @@ public partial class FeedPollingBackgroundService : BackgroundService
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error polling feed '{name}'")]
     private partial void LogPollError(Exception ex, string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to delete source episode file '{path}'")]
+    private partial void LogSourceCleanupFailed(IOException ex, string path);
 }
