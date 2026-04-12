@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 using mu88.Shared.OpenTelemetry;
+using PodScrub.Api;
 using PodScrub.Application;
 using PodScrub.Domain;
 using PodScrub.Infrastructure;
@@ -9,6 +11,9 @@ using PodScrub.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureOpenTelemetry("podscrub", builder.Configuration);
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing.AddSource("podscrub"))
+    .WithMetrics(metrics => metrics.AddMeter("podscrub"));
 
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole(options =>
@@ -42,7 +47,8 @@ builder.Services.AddSingleton<IFileSystem, FileSystem>();
 builder.Services.AddSingleton<IRssFeedReader>(serviceProvider =>
 {
     var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-    return new RssFeedReaderAdapter(httpClientFactory.CreateClient("podcast"));
+    var logger = serviceProvider.GetRequiredService<ILogger<RssFeedReaderAdapter>>();
+    return new RssFeedReaderAdapter(httpClientFactory.CreateClient("podcast"), logger);
 });
 builder.Services.AddSingleton<IEpisodeDownloader>(serviceProvider =>
 {
@@ -57,13 +63,14 @@ builder.Services.AddTransient<SyncFeedUseCase>();
 
 builder.Services.AddHostedService<FeedPollingBackgroundService>();
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck<DataPathHealthCheck>("data-path");
 
 var app = builder.Build();
 
 app.UsePathBase("/podscrub");
 
-app.MapGet("/feed/{name}/rss.xml", async (
+app.MapGet("/feed/{name}/rss.xml", async Task<Results<NotFound<string>, ContentHttpResult>>(
     string name,
     IReadOnlyList<Feed> configuredFeeds,
     IRssFeedReader rssFeedReader,
@@ -74,30 +81,31 @@ app.MapGet("/feed/{name}/rss.xml", async (
     var feed = configuredFeeds.FirstOrDefault(feed => string.Equals(feed.Name, name, StringComparison.OrdinalIgnoreCase));
     if (feed is null)
     {
-        return Results.NotFound($"Feed '{name}' not found.");
+        return TypedResults.NotFound($"Feed '{name}' not found.");
     }
 
     var metadata = await rssFeedReader.ReadFeedMetadataAsync(feed.Url, cancellationToken);
     var episodes = episodeStore.GetValueOrDefault(feed.Name, []);
 
-    var rssXml = RssFeedGenerator.GenerateFeed(metadata, episodes, options.Value.BaseUrl, feed.Name);
-    return Results.Content(rssXml, "application/rss+xml");
+    var rssXml = RssFeedGenerator.GenerateFeed(metadata, episodes, options.Value.BaseUrl);
+    return TypedResults.Content(rssXml, "application/rss+xml");
 }).WithName("GetFeed");
 
-app.MapGet("/audio/{episodeId}", (
+app.MapGet("/audio/{episodeId}", Results<NotFound<string>, PhysicalFileHttpResult>(
     string episodeId,
-    ConcurrentDictionary<string, List<Episode>> episodeStore) =>
+    ConcurrentDictionary<string, List<Episode>> episodeStore,
+    IFileSystem fileSystem) =>
 {
     var episode = episodeStore.Values
         .SelectMany(episodes => episodes)
         .FirstOrDefault(episode => string.Equals(episode.Id, episodeId, StringComparison.OrdinalIgnoreCase));
 
-    if (episode?.ProcessedAudioPath is null || !File.Exists(episode.ProcessedAudioPath))
+    if (episode?.ProcessedAudioPath is null || !fileSystem.FileExists(episode.ProcessedAudioPath))
     {
-        return Results.NotFound("Episode audio not found.");
+        return TypedResults.NotFound("Episode audio not found.");
     }
 
-    return Results.File(episode.ProcessedAudioPath, "audio/mpeg");
+    return TypedResults.PhysicalFile(episode.ProcessedAudioPath, "audio/mpeg");
 }).WithName("GetAudio");
 
 app.MapHealthChecks("/healthz");

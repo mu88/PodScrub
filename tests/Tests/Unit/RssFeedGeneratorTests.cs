@@ -20,7 +20,7 @@ public class RssFeedGeneratorTests
         episodes[0].MarkProcessed("/processed/ep-1.mp3", 2);
 
         // Act
-        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080", "my-feed");
+        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080");
 
         // Assert
         result.Should().Contain("<title>My Podcast</title>");
@@ -40,7 +40,7 @@ public class RssFeedGeneratorTests
         };
 
         // Act
-        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080", "my-feed");
+        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080");
 
         // Assert
         result.Should().Contain("https://example.com/ep1.mp3");
@@ -54,7 +54,7 @@ public class RssFeedGeneratorTests
         var metadata = new FeedMetadata("My Podcast", "A great podcast", null, "https://example.com");
 
         // Act
-        var result = RssFeedGenerator.GenerateFeed(metadata, [], "http://localhost:8080", "my-feed");
+        var result = RssFeedGenerator.GenerateFeed(metadata, [], "http://localhost:8080");
 
         // Assert
         result.Should().NotContain("itunes:image");
@@ -67,7 +67,7 @@ public class RssFeedGeneratorTests
         var metadata = new FeedMetadata("My Podcast", "A great podcast", "https://example.com/image.jpg", "https://example.com");
 
         // Act
-        var result = RssFeedGenerator.GenerateFeed(metadata, [], "http://localhost:8080", "my-feed");
+        var result = RssFeedGenerator.GenerateFeed(metadata, [], "http://localhost:8080");
 
         // Assert
         result.Should().Contain("itunes:image");
@@ -86,7 +86,7 @@ public class RssFeedGeneratorTests
         };
 
         // Act
-        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080", "my-feed");
+        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080");
 
         // Assert
         var newIndex = result.IndexOf("New Episode", StringComparison.Ordinal);
@@ -106,7 +106,7 @@ public class RssFeedGeneratorTests
         episodes[0].MarkProcessed("/processed/ep-1.mp3");
 
         // Act
-        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080", "my-feed");
+        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080");
 
         // Assert
         result.Should().Contain("<title>Episode 1</title>");
@@ -130,7 +130,7 @@ public class RssFeedGeneratorTests
         };
 
         // Act
-        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080", "my-feed");
+        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080");
 
         // Assert
         result.Should().Contain("<description>Episode about testing</description>");
@@ -152,7 +152,7 @@ public class RssFeedGeneratorTests
         };
 
         // Act
-        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080", "my-feed");
+        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080");
 
         // Assert
         result.Should().NotContain("itunes:summary");
@@ -178,5 +178,22 @@ public class RssFeedGeneratorTests
 
         // Assert
         result.Should().Be(expected);
+    }
+
+    [Test]
+    public void GenerateFeed_GuidIsNotPermaLink()
+    {
+        // Arrange
+        var metadata = new FeedMetadata("My Podcast", "A great podcast", null, "https://example.com");
+        var episodes = new List<Episode>
+        {
+            new("ep-1", "my-feed", "Episode 1", "https://example.com/ep1.mp3", new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeSpan.Zero)),
+        };
+
+        // Act
+        var result = RssFeedGenerator.GenerateFeed(metadata, episodes, "http://localhost:8080");
+
+        // Assert
+        result.Should().Contain("isPermaLink=\"false\"", "GUID is not a URL so isPermaLink must be false per RSS spec");
     }
 }

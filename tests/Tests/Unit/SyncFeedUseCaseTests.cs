@@ -167,7 +167,7 @@ public class SyncFeedUseCaseTests
             Substitute.For<Microsoft.Extensions.Logging.ILogger<SyncFeedUseCase>>());
 
         var oldEpisode = new Episode("ep-1", "test", "Episode 1", "https://example.com/ep1.mp3", DateTimeOffset.UtcNow.AddDays(-3));
-        oldEpisode.MarkProcessed("/audio/ep1.mp3");
+        oldEpisode.MarkProcessed(Path.Combine("/data", "test", "processed", "ep-1.mp3"));
         var episodes = new List<Episode>
         {
             oldEpisode,
@@ -182,7 +182,36 @@ public class SyncFeedUseCaseTests
         result.Should().HaveCount(2);
         result.Select(episode => episode.Id).Should().Contain("ep-2").And.Contain("ep-3");
         result.Select(episode => episode.Id).Should().NotContain("ep-1");
-        fileSystem.Received(1).DeleteFile("/audio/ep1.mp3");
+        fileSystem.Received(1).DeleteFile(Path.Combine("/data", "test", "processed", "ep-1.mp3"));
+        fileSystem.Received(1).DeleteFile(Arg.Is<string>(path => path.EndsWith(Path.Combine("downloads", "ep-1.mp3"), StringComparison.Ordinal)));
+    }
+
+    [Test]
+    public void ApplyRetentionPolicy_OverLimit_AlsoEvictsSidecarFile()
+    {
+        // Arrange
+        var fileSystem = Substitute.For<IFileSystem>();
+        fileSystem.FileExists(Arg.Any<string>()).Returns(true);
+        var useCase = new SyncFeedUseCase(
+            Substitute.For<IRssFeedReader>(),
+            CreateProcessEpisodeMock(),
+            CreateOptions(maxEpisodesPerFeed: 1),
+            fileSystem,
+            Substitute.For<Microsoft.Extensions.Logging.ILogger<SyncFeedUseCase>>());
+
+        var oldEpisode = new Episode("ep-1", "test", "Episode 1", "https://example.com/ep1.mp3", DateTimeOffset.UtcNow.AddDays(-3));
+        oldEpisode.MarkProcessed(Path.Combine("/data", "test", "processed", "ep-1.mp3"), segmentsRemoved: 2);
+        var episodes = new List<Episode>
+        {
+            oldEpisode,
+            new("ep-2", "test", "Episode 2", "https://example.com/ep2.mp3", DateTimeOffset.UtcNow.AddDays(-1)),
+        };
+
+        // Act
+        useCase.ApplyRetentionPolicy(episodes);
+
+        // Assert
+        fileSystem.Received(1).DeleteFile(Path.Combine("/data", "test", "processed", "ep-1.json"));
     }
 
     [Test]

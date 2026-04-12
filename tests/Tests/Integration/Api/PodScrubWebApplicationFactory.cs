@@ -51,7 +51,9 @@ internal class PodScrubWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton(Substitute.For<IEpisodeDownloader>());
 
             services.RemoveAll<IFileSystem>();
-            services.AddSingleton(Substitute.For<IFileSystem>());
+            var fileSystemMock = Substitute.For<IFileSystem>();
+            fileSystemMock.FileExists(Arg.Any<string>()).Returns(callInfo => File.Exists(callInfo.Arg<string>()));
+            services.AddSingleton(fileSystemMock);
         });
     }
 }

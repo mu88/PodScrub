@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PodScrub.Domain;
 
@@ -28,6 +28,9 @@ public partial class SyncFeedUseCase
 
     public async Task<IReadOnlyList<Episode>> ExecuteAsync(Feed feed, string outputDirectory, IReadOnlyList<Episode> existingEpisodes, CancellationToken cancellationToken)
     {
+        using var activity = PodScrubTelemetry.ActivitySource.StartActivity("sync-feed");
+        activity?.SetTag("feed.name", feed.Name);
+
         LogSyncingFeed(feed.Name);
 
         var feedItems = await _rssFeedReader.ReadFeedItemsAsync(feed.Url, cancellationToken);
@@ -104,17 +107,38 @@ public partial class SyncFeedUseCase
             return;
         }
 
+        // Clean up processed file and its sidecar metadata
+        DeleteFileIfExists(episode.ProcessedAudioPath, episode.Title);
+        DeleteFileIfExists(Path.ChangeExtension(episode.ProcessedAudioPath, ".json"), episode.Title);
+
+        // Navigate from processed/{id}.mp3 up to the feed directory, then into downloads/
+        var processedDirectory = Path.GetDirectoryName(episode.ProcessedAudioPath);
+        var feedDirectory = processedDirectory is not null ? Path.GetDirectoryName(processedDirectory) : null;
+        if (feedDirectory is null)
+        {
+            return;
+        }
+
+        var downloadPath = Path.Combine(feedDirectory, "downloads", Path.GetFileName(episode.ProcessedAudioPath));
+        if (!string.Equals(downloadPath, episode.ProcessedAudioPath, StringComparison.Ordinal))
+        {
+            DeleteFileIfExists(downloadPath, episode.Title);
+        }
+    }
+
+    private void DeleteFileIfExists(string path, string episodeTitle)
+    {
         try
         {
-            if (_fileSystem.FileExists(episode.ProcessedAudioPath))
+            if (_fileSystem.FileExists(path))
             {
-                _fileSystem.DeleteFile(episode.ProcessedAudioPath);
-                LogEpisodeEvicted(episode.Title, episode.ProcessedAudioPath);
+                _fileSystem.DeleteFile(path);
+                LogEpisodeEvicted(episodeTitle, path);
             }
         }
         catch (IOException ex)
         {
-            LogEvictionFailed(ex, episode.Title);
+            LogEvictionFailed(ex, episodeTitle);
         }
     }
 

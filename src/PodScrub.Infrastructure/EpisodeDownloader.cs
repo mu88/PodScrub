@@ -10,16 +10,9 @@ public class EpisodeDownloader : IEpisodeDownloader
 
     public EpisodeDownloader(HttpClient httpClient) => _httpClient = httpClient;
 
-    public async Task<string> DownloadEpisodeAsync(string url, string targetDirectory, CancellationToken cancellationToken)
+    public async Task<string> DownloadEpisodeAsync(string url, string targetDirectory, string fileName, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(targetDirectory);
-
-        var uri = new Uri(url);
-        var fileName = Path.GetFileName(uri.LocalPath);
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            fileName = $"{Guid.NewGuid():N}.mp3";
-        }
 
         var targetPath = Path.Combine(targetDirectory, fileName);
 
