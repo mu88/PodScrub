@@ -180,8 +180,8 @@
           "CodeHollow.FeedReader": "[1.2.6, )",
           "FFMpegCore": "[5.4.0, )",
           "PodScrub.Domain": "[1.0.0, )",
-          "SoundFingerprinting": "[15.2.0, )",
-          "SoundFingerprinting.Emy": "[15.2.8, )"
+          "SoundFingerprinting": "[15.3.0, )",
+          "SoundFingerprinting.Emy": "[15.3.0, )"
         }
       },
       "CodeHollow.FeedReader": {
@@ -201,9 +201,9 @@
       },
       "SoundFingerprinting": {
         "type": "CentralTransitive",
-        "requested": "[15.2.0, )",
-        "resolved": "15.2.0",
-        "contentHash": "runekgbUMiX6QTdY/qUJJi553iZxFFpuWuS52v7EkMeHUJstLCac37UGFxDpz6v+mSEJbOSBMEkXzXYTy9p4nA==",
+        "requested": "[15.3.0, )",
+        "resolved": "15.3.0",
+        "contentHash": "76JvIyga/IVkZnMh1NJriuLglB1zotCKwDpw6faDE6eLOBBMIAAn8+uo0WXiXDhaW2gyI698qcrr39ggqPwgDA==",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "10.0.0",
           "protobuf-net": "2.4.6"
@@ -211,13 +211,13 @@
       },
       "SoundFingerprinting.Emy": {
         "type": "CentralTransitive",
-        "requested": "[15.2.8, )",
-        "resolved": "15.2.8",
-        "contentHash": "Y1tA77tHbEU/WduOkqxH04CvxIGRWwO3/AKcNqiZ3ORpQbz6uRVHerWmdxTkljLDgq/YSxLOQQgCk4Yji857GQ==",
+        "requested": "[15.3.0, )",
+        "resolved": "15.3.0",
+        "contentHash": "GAqlqWZ0n/JFQlCMXV86LWbaxFp0YS7ITsLpbpU6EK1ymFXyevaQ+wXJzK/eJC97mbmNRfIsjLelNhXwSG5YHQ==",
         "dependencies": {
           "FFmpeg.AutoGen.Bindings.DynamicallyLoaded": "8.0.0",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
-          "SoundFingerprinting": "15.2.0",
+          "SoundFingerprinting": "15.3.0",
           "System.ComponentModel.Annotations": "5.0.0"
         }
       }
