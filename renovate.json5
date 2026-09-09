@@ -2,5 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "github>mu88/common//renovate/default.json5"
+  ],
+  "packageRules": [
+    {
+      "description": "Allow ASP.NET container updates without a release timestamp while still honoring minimumReleaseAge when one is available",
+      "matchPackageNames": [
+        "mcr.microsoft.com/dotnet/aspnet"
+      ],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    }
   ]
 }
