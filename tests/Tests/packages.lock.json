@@ -106,9 +106,9 @@
       },
       "Testcontainers": {
         "type": "Direct",
-        "requested": "[4.14.0, )",
-        "resolved": "4.14.0",
-        "contentHash": "ojuBi91xcMsR6vnFuNsQDWU9tlZlrtmqy95VPNWVVnh24GiwFL/WMnVmb6bRv8LqovtnKPJN9cpmH1k02Z4ZoA==",
+        "requested": "[4.15.0, )",
+        "resolved": "4.15.0",
+        "contentHash": "8tCZKMm++C/9dHIr8lsE1iDBIBmthbo2XlGFDr4gorT1vgZrJwU36fNkCGuX7h7V39rpQoTK/aG+FhJz3jhY3A==",
         "dependencies": {
           "Docker.DotNet.Enhanced": "4.3.3",
           "Docker.DotNet.Enhanced.X509": "4.3.3",
@@ -813,8 +813,8 @@
           "Microsoft.Extensions.Http": "[10.0.11, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.11, )",
           "PodScrub.Domain": "[1.0.0, )",
-          "SoundFingerprinting": "[15.12.0, )",
-          "SoundFingerprinting.Emy": "[15.12.1, )"
+          "SoundFingerprinting": "[15.13.0, )",
+          "SoundFingerprinting.Emy": "[15.13.0, )"
         }
       },
       "CodeHollow.FeedReader": {
@@ -867,9 +867,9 @@
       },
       "SoundFingerprinting": {
         "type": "CentralTransitive",
-        "requested": "[15.12.0, )",
-        "resolved": "15.12.0",
-        "contentHash": "IAcI0LFKRw0ERBN6RhpNBq1GoVrOzjIy6gCa+ix6CdSHC9z29yHkMBy+/Orqo4aIkTfcosnDnR4AFkW0qPGf8w==",
+        "requested": "[15.13.0, )",
+        "resolved": "15.13.0",
+        "contentHash": "KHqp5qlpCt4I/Fsa3UYeU+afKdkXd1ZDBX5LHe1JW8HiBS3BPnlRejk35ocyvKWPQ24O6ECW5I/0zFb0SYKEJA==",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "10.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
@@ -878,13 +878,13 @@
       },
       "SoundFingerprinting.Emy": {
         "type": "CentralTransitive",
-        "requested": "[15.12.1, )",
-        "resolved": "15.12.1",
-        "contentHash": "Kf/t6OAAYWoXTHu5UL21g2LHem8yuFtrehwGLtLKrIcyT4GCeurlKJ84F0If0fOxHk99VRlx4DqqiLg1FkV8Dg==",
+        "requested": "[15.13.0, )",
+        "resolved": "15.13.0",
+        "contentHash": "4h3+PPdxG2Cq9Z8+w7KbedoMnQ6MV7cYqlgexwH6jpNOu6DlraTQ0t6cSuKNXQ0indUpRUDd7imFUvPwBnMCwA==",
         "dependencies": {
           "FFmpeg.AutoGen.Bindings.DynamicallyLoaded": "8.0.0",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
-          "SoundFingerprinting": "15.12.0",
+          "SoundFingerprinting": "15.13.0",
           "System.ComponentModel.Annotations": "5.0.0"
         }
       }
