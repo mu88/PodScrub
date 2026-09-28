@@ -30,7 +30,7 @@ jobs:
       id-token: write
       packages: write
 
-    uses: mu88/common/.github/workflows/ci-cd.yml@1f11d1740794acc87451af8a923b700b5beb49d8 # main
+    uses: mu88/common/.github/workflows/ci-cd.yml@4d67cdde58753e711a4761ea1b3d68085351ae93 # main
     with:
       docker-attest-provenance-and-sbom: true
       docker-publish-project: src/PodScrub.Api/PodScrub.Api.csproj
