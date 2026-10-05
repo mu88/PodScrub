@@ -41,8 +41,8 @@
       },
       "Instances": {
         "type": "Transitive",
-        "resolved": "3.0.2",
-        "contentHash": "LfhegDpmA8PuHW58RmgVvCDG/mfVCTU+Vhy4ppmXLJfAer33Xl0NocDy92OwSL6CnkVdx41O/I0+BjNhU1JtMQ=="
+        "resolved": "3.1.0",
+        "contentHash": "YgWADSkh/WWIbluWAqjb6YMr3YkGETlsCLnd6gELHNAJfNY6pmqMRJNjONm7cyU78BNIJxd6kJ9bpAIvno++vw=="
       },
       "Meziantou.Analyzer": {
         "type": "Transitive",
@@ -209,7 +209,7 @@
         "type": "Project",
         "dependencies": {
           "CodeHollow.FeedReader": "[1.2.6, )",
-          "FFMpegCore": "[5.4.0, )",
+          "FFMpegCore": "[5.5.0, )",
           "PodScrub.Domain": "[1.0.0, )",
           "SoundFingerprinting": "[15.13.0, )",
           "SoundFingerprinting.Emy": "[15.13.0, )"
@@ -223,11 +223,11 @@
       },
       "FFMpegCore": {
         "type": "CentralTransitive",
-        "requested": "[5.4.0, )",
-        "resolved": "5.4.0",
-        "contentHash": "nymhPWpwvBaB4fOqf0thxg7Inm8SrruFQLdCMFEDKD8S3hy0/iV2vuKaJvaL9ZnbJx/2rJCHnJXOymo2apXovg==",
+        "requested": "[5.5.0, )",
+        "resolved": "5.5.0",
+        "contentHash": "KVqajQUb9W7IysZGw05SwQURARyNoEIs798kIbkTDX7LfWgoivejtvsui0yJv0HLHH1tQiMiSWSW4eMR5zFUvw==",
         "dependencies": {
-          "Instances": "3.0.2"
+          "Instances": "3.1.0"
         }
       },
       "SoundFingerprinting": {
