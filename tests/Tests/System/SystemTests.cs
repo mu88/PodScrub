@@ -1,93 +1,42 @@
 using System.Diagnostics.CodeAnalysis;
-using CliWrap;
-using CliWrap.Buffered;
-using Docker.DotNet;
-using Docker.DotNet.Models;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
 using FluentAssertions;
+using mu88.Shared.Testing.Docker;
+using mu88.Shared.Testing.SystemTests;
 using NUnit.Framework;
-using NUnit.Framework.Interfaces;
 
 namespace Tests.System;
 
 [TestFixture]
 [Category("System")]
-[SuppressMessage("ReSharper", "LocalizableElement", Justification = "Okay for me since it's just test output")]
-public class SystemTests
+public class SystemTests : SystemTestsBase
 {
-    private CancellationTokenSource? _cancellationTokenSource;
-    private CancellationToken _cancellationToken;
-    private DockerClient? _dockerClient;
-    private IContainer? _container;
+    [SuppressMessage("NUnit1032", "NUnit1032:An IDisposable field/property should be Disposed in a TearDown method", Justification = "Disposed via CleanupAdditionalResourcesAsync, called from the base class's [TearDown]-annotated method.")]
     private IContainer? _feedServer;
+
+    [SuppressMessage("NUnit1032", "NUnit1032:An IDisposable field/property should be Disposed in a TearDown method", Justification = "Disposed via CleanupAdditionalResourcesAsync, called from the base class's [TearDown]-annotated method.")]
     private INetwork? _network;
 
-    [SetUp]
-    public void Setup()
-    {
-        _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-        _cancellationToken = _cancellationTokenSource.Token;
-        _dockerClient = new DockerClientBuilder().Build();
-    }
+    protected override string SubPath => "/podscrub";
 
-    [TearDown]
-    public async Task Teardown()
-    {
-        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")))
-        {
-            return;
-        }
-
-        if (TestContext.CurrentContext.Result.Outcome.Status == TestStatus.Passed && _dockerClient is not null)
-        {
-            if (_container is not null)
-            {
-                await _container.StopAsync(_cancellationToken);
-                await _container.DisposeAsync();
-                await _dockerClient.Images.DeleteImageAsync(_container.Image.FullName, new ImageDeleteParameters { Force = true }, _cancellationToken);
-            }
-
-            if (_feedServer is not null)
-            {
-                await _feedServer.StopAsync(_cancellationToken);
-                await _feedServer.DisposeAsync();
-            }
-
-            if (_network is not null)
-            {
-                await _network.DeleteAsync(_cancellationToken);
-                await _network.DisposeAsync();
-            }
-        }
-
-        _dockerClient?.Dispose();
-        _cancellationTokenSource?.Dispose();
-    }
+    protected override TimeSpan Timeout => TimeSpan.FromMinutes(5);
 
     [Test]
-    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP014:Use a single instance of HttpClient", Justification = "Just a single test, not a perf issue")]
     public async Task AppRunningInDocker_ShouldBeHealthy()
     {
         // Arrange
-        var containerImageTag = GenerateContainerImageTag();
-        await BuildDockerImageAsync(containerImageTag, _cancellationToken);
-        _container = await StartAppInContainerAsync(containerImageTag, _cancellationToken);
-        var httpClient = new HttpClient { BaseAddress = GetAppBaseAddress(_container) };
+        var containerImageTag = DockerImageBuilder.GenerateContainerImageTag();
+        await BuildDockerImageAsync(containerImageTag, CancellationToken);
+        Container = await StartAppInContainerAsync(containerImageTag, CancellationToken);
 
-        // Act
-        var healthCheckResponse = await httpClient.GetAsync("healthz", _cancellationToken);
-        var healthCheckToolResult = await _container.ExecAsync(["dotnet", "/app/mu88.HealthCheck.dll", "http://127.0.0.1:8080/podscrub/healthz"], _cancellationToken);
-
-        // Assert
-        await LogsShouldNotContainWarningsAsync(_container, _cancellationToken);
-        await HealthCheckShouldBeHealthyAsync(healthCheckResponse, _cancellationToken);
-        healthCheckToolResult.ExitCode.Should().Be(0);
+        // Act & Assert
+        await LogsShouldNotContainWarningsAsync(CancellationToken);
+        await HealthCheckShouldSucceedAsync(CancellationToken);
     }
 
     [Test]
-    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP014:Use a single instance of HttpClient", Justification = "Just a single test, not a perf issue")]
     public async Task AppRunningInDocker_ShouldProcessPodcastFeed()
     {
         // Arrange
@@ -96,11 +45,11 @@ public class SystemTests
 
         try
         {
-            var containerImageTag = GenerateContainerImageTag();
-            await BuildDockerImageAsync(containerImageTag, _cancellationToken);
+            var containerImageTag = DockerImageBuilder.GenerateContainerImageTag();
+            await BuildDockerImageAsync(containerImageTag, CancellationToken);
 
             _network = new NetworkBuilder().Build();
-            await _network.CreateAsync(_cancellationToken);
+            await _network.CreateAsync(CancellationToken);
 
             TestAudioGenerator.WriteTestFiles(testDataDir, $"http://{feedServerAlias}");
 
@@ -112,19 +61,17 @@ public class SystemTests
                 .WithWaitStrategy(Wait.ForUnixContainer()
                     .UntilHttpRequestIsSucceeded(request => request.ForPath("/feed.rss").ForPort(80)))
                 .Build();
-            await _feedServer.StartAsync(_cancellationToken);
+            await _feedServer.StartAsync(CancellationToken);
 
-            _container = BuildAppContainerWithFeed(_network, containerImageTag, feedServerAlias);
-            await _container.StartAsync(_cancellationToken);
-
-            var httpClient = new HttpClient { BaseAddress = GetAppBaseAddress(_container) };
+            var appContainer = BuildAppContainerWithFeed(_network, containerImageTag, feedServerAlias);
+            await appContainer.StartAsync(CancellationToken);
+            Container = appContainer;
 
             // Act — wait for PodScrub to poll and sync the feed (initial poll is immediate on startup)
-            var feedResponse = await WaitForFeedSyncAsync(httpClient, "test-podcast", _cancellationToken);
+            var feedResponse = await WaitForFeedSyncAsync(HttpClient, "test-podcast", CancellationToken);
 
             // Assert
-            var healthCheckResponse = await httpClient.GetAsync("healthz", _cancellationToken);
-            await HealthCheckShouldBeHealthyAsync(healthCheckResponse, _cancellationToken);
+            await HealthCheckShouldSucceedAsync(CancellationToken);
 
             feedResponse.Should().NotBeNull("feed should be available after sync");
             feedResponse.Should().Contain("<title>Test Podcast", "feed should contain the podcast title");
@@ -132,7 +79,7 @@ public class SystemTests
             feedResponse.Should().Contain("/podscrub/audio/", "episode should have a PodScrub audio URL");
 
             // Check container logs for successful processing
-            (string stdout, string stderr) = await _container.GetLogsAsync(ct: _cancellationToken);
+            (string stdout, string stderr) = await Container.GetLogsAsync(ct: CancellationToken);
             var allLogs = stdout + stderr;
             Console.WriteLine($"Container logs:{Environment.NewLine}{allLogs}");
 
@@ -146,6 +93,26 @@ public class SystemTests
             {
                 Directory.Delete(testDataDir, recursive: true);
             }
+        }
+    }
+
+    /// <summary>
+    /// Cleans up the additional <see cref="_feedServer"/> container and <see cref="_network"/> created by
+    /// <see cref="AppRunningInDocker_ShouldProcessPodcastFeed"/>, beyond the base class's own <see cref="Container"/>
+    /// cleanup.
+    /// </summary>
+    protected override async Task CleanupAdditionalResourcesAsync(CancellationToken cancellationToken)
+    {
+        if (_feedServer is not null)
+        {
+            await _feedServer.StopAsync(cancellationToken);
+            await _feedServer.DisposeAsync();
+        }
+
+        if (_network is not null)
+        {
+            await _network.DeleteAsync(cancellationToken);
+            await _network.DisposeAsync();
         }
     }
 
@@ -215,22 +182,7 @@ public class SystemTests
     {
         var rootDirectory = Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.Parent?.Parent ?? throw new NullReferenceException();
         var apiProjectFile = Path.Join(rootDirectory.FullName, "src", "PodScrub.Api", "PodScrub.Api.csproj");
-        var buildResult = await Cli.Wrap("dotnet")
-            .WithArguments([
-                "publish",
-                $"{apiProjectFile}",
-                "--os",
-                "linux",
-                "--arch",
-                "amd64",
-                "/t:PublishContainersForMultipleFamilies",
-                $"/p:ReleaseVersion={containerImageTag}",
-                "/p:IsRelease=false",
-                "/p:DoNotApplyGitHubScope=true",
-            ])
-            .ExecuteBufferedAsync(cancellationToken);
-        Console.WriteLine(buildResult.StandardOutput);
-        buildResult.IsSuccess.Should().BeTrue();
+        await DockerImageBuilder.BuildAsync(apiProjectFile, containerImageTag, "podscrub-api", rootDirectory.FullName, cancellationToken);
     }
 
     private static async Task<IContainer> StartAppInContainerAsync(string containerImageTag, CancellationToken cancellationToken)
@@ -258,26 +210,4 @@ public class SystemTests
                 .UntilMessageIsLogged("Content root path: /app",
                     strategy => strategy.WithTimeout(TimeSpan.FromSeconds(30))))
             .Build();
-
-    private static Uri GetAppBaseAddress(IContainer container)
-        => new($"http://{container.Hostname}:{container.GetMappedPublicPort(8080)}/podscrub");
-
-    private static async Task HealthCheckShouldBeHealthyAsync(HttpResponseMessage healthCheckResponse, CancellationToken cancellationToken)
-    {
-        healthCheckResponse.Should().Be200Ok();
-        (await healthCheckResponse.Content.ReadAsStringAsync(cancellationToken)).Should().Be("Healthy");
-    }
-
-    private static async Task LogsShouldNotContainWarningsAsync(IContainer container, CancellationToken cancellationToken)
-    {
-        (string Stdout, string Stderr) logValues = await container.GetLogsAsync(ct: cancellationToken);
-        Console.WriteLine($"Stderr:{Environment.NewLine}{logValues.Stderr}");
-        Console.WriteLine($"Stdout:{Environment.NewLine}{logValues.Stdout}");
-        logValues.Stdout
-            .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-            .Should().NotContain(line => line.Contains("warn:", StringComparison.Ordinal));
-    }
-
-    [SuppressMessage("Design", "MA0076:Do not use implicit culture-sensitive ToString in interpolated strings", Justification = "Okay for me")]
-    private static string GenerateContainerImageTag() => $"0.0.0-system-test-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
 }
