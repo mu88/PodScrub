@@ -102,9 +102,9 @@
       },
       "NUnit": {
         "type": "Direct",
-        "requested": "[4.6.1, )",
-        "resolved": "4.6.1",
-        "contentHash": "xS4+YaBFUv1r8bcAbjitSfYaRZGfMwUiMdiaRziBXZpKgVxKDSHhjUn0mV5mObHGZRZq6eNa+WFWr3g8grj66A=="
+        "requested": "[5.0.0, )",
+        "resolved": "5.0.0",
+        "contentHash": "tW5Juazgh4CI4pXo5c9c2J9J4i9vwZMm/FJ+gRRe0plJHLCz7Ck/raPuE5q1xWmLAUwpao4Ht1Uy1uRN3Wo5sw=="
       },
       "NUnit.Analyzers": {
         "type": "Direct",
@@ -862,8 +862,8 @@
           "Microsoft.Extensions.Http": "[10.0.12, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.12, )",
           "PodScrub.Domain": "[1.0.0, )",
-          "SoundFingerprinting": "[15.13.0, )",
-          "SoundFingerprinting.Emy": "[15.13.0, )"
+          "SoundFingerprinting": "[15.14.1, )",
+          "SoundFingerprinting.Emy": "[15.14.1, )"
         }
       },
       "CodeHollow.FeedReader": {
@@ -916,9 +916,9 @@
       },
       "SoundFingerprinting": {
         "type": "CentralTransitive",
-        "requested": "[15.13.0, )",
-        "resolved": "15.13.0",
-        "contentHash": "KHqp5qlpCt4I/Fsa3UYeU+afKdkXd1ZDBX5LHe1JW8HiBS3BPnlRejk35ocyvKWPQ24O6ECW5I/0zFb0SYKEJA==",
+        "requested": "[15.14.1, )",
+        "resolved": "15.14.1",
+        "contentHash": "ulel7LPxsIfRvc4tw9Kd8iyZ+3XBlSFSSBegB5fp2CfMA/ukPPdujtXe2bIOZp0M8SynSbrVOnyqwMqc9tZjiQ==",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "10.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
@@ -927,13 +927,13 @@
       },
       "SoundFingerprinting.Emy": {
         "type": "CentralTransitive",
-        "requested": "[15.13.0, )",
-        "resolved": "15.13.0",
-        "contentHash": "4h3+PPdxG2Cq9Z8+w7KbedoMnQ6MV7cYqlgexwH6jpNOu6DlraTQ0t6cSuKNXQ0indUpRUDd7imFUvPwBnMCwA==",
+        "requested": "[15.14.1, )",
+        "resolved": "15.14.1",
+        "contentHash": "mlRrihEyWpKrb/9HkXEK6iRv7vCIjU8AgXljP7VzQn/ero4up0I4GyCdC+VxgmIMy/wOLi7faH/6Kovg1cPl4g==",
         "dependencies": {
           "FFmpeg.AutoGen.Bindings.DynamicallyLoaded": "8.0.0",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
-          "SoundFingerprinting": "15.13.0",
+          "SoundFingerprinting": "15.14.1",
           "System.ComponentModel.Annotations": "5.0.0"
         }
       }
