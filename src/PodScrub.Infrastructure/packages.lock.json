@@ -42,9 +42,9 @@
       },
       "SoundFingerprinting": {
         "type": "Direct",
-        "requested": "[15.14.1, )",
-        "resolved": "15.14.1",
-        "contentHash": "ulel7LPxsIfRvc4tw9Kd8iyZ+3XBlSFSSBegB5fp2CfMA/ukPPdujtXe2bIOZp0M8SynSbrVOnyqwMqc9tZjiQ==",
+        "requested": "[15.15.0, )",
+        "resolved": "15.15.0",
+        "contentHash": "WUAjdLOcTxdAMEucJi3zqRHOeiM60y6OdVYb1840pRIqpQjIDsT3LkzXy69ca/cbIGURbaI25MJsAYNUR6FKow==",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "10.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
@@ -53,13 +53,13 @@
       },
       "SoundFingerprinting.Emy": {
         "type": "Direct",
-        "requested": "[15.14.1, )",
-        "resolved": "15.14.1",
-        "contentHash": "mlRrihEyWpKrb/9HkXEK6iRv7vCIjU8AgXljP7VzQn/ero4up0I4GyCdC+VxgmIMy/wOLi7faH/6Kovg1cPl4g==",
+        "requested": "[15.15.0, )",
+        "resolved": "15.15.0",
+        "contentHash": "O1GsbfXIUMoiwmM3novtETh2SUIplnemflWnDRYuMMB6GYFPdup8ov94RkdnmZwCwi0L90aOUyuTFd9iLFAL5A==",
         "dependencies": {
           "FFmpeg.AutoGen.Bindings.DynamicallyLoaded": "8.0.0",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
-          "SoundFingerprinting": "15.14.1",
+          "SoundFingerprinting": "15.15.0",
           "System.ComponentModel.Annotations": "5.0.0"
         }
       },
