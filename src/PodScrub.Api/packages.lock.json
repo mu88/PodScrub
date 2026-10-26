@@ -212,7 +212,7 @@
           "FFMpegCore": "[5.5.0, )",
           "PodScrub.Domain": "[1.0.0, )",
           "SoundFingerprinting": "[15.16.0, )",
-          "SoundFingerprinting.Emy": "[15.15.0, )"
+          "SoundFingerprinting.Emy": "[15.16.0, )"
         }
       },
       "CodeHollow.FeedReader": {
@@ -242,13 +242,13 @@
       },
       "SoundFingerprinting.Emy": {
         "type": "CentralTransitive",
-        "requested": "[15.15.0, )",
-        "resolved": "15.15.0",
-        "contentHash": "O1GsbfXIUMoiwmM3novtETh2SUIplnemflWnDRYuMMB6GYFPdup8ov94RkdnmZwCwi0L90aOUyuTFd9iLFAL5A==",
+        "requested": "[15.16.0, )",
+        "resolved": "15.16.0",
+        "contentHash": "ZdKCJ32Q0bQ4kW3GMs3gy45A4R7BiKtEm6bZ4HVdZecQUGGvsKfL/uNGcOGNwoP4CRaqBw4yWQITp1Z4nQtSBg==",
         "dependencies": {
           "FFmpeg.AutoGen.Bindings.DynamicallyLoaded": "8.0.0",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
-          "SoundFingerprinting": "15.15.0",
+          "SoundFingerprinting": "15.16.0",
           "System.ComponentModel.Annotations": "5.0.0"
         }
       }
