@@ -868,7 +868,7 @@
           "Microsoft.Extensions.Http": "[10.0.12, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.12, )",
           "PodScrub.Domain": "[1.0.0, )",
-          "SoundFingerprinting": "[15.15.0, )",
+          "SoundFingerprinting": "[15.16.0, )",
           "SoundFingerprinting.Emy": "[15.15.0, )"
         }
       },
@@ -922,9 +922,9 @@
       },
       "SoundFingerprinting": {
         "type": "CentralTransitive",
-        "requested": "[15.15.0, )",
-        "resolved": "15.15.0",
-        "contentHash": "WUAjdLOcTxdAMEucJi3zqRHOeiM60y6OdVYb1840pRIqpQjIDsT3LkzXy69ca/cbIGURbaI25MJsAYNUR6FKow==",
+        "requested": "[15.16.0, )",
+        "resolved": "15.16.0",
+        "contentHash": "+mH5hQeqZSrtunfTz2pZtRwsBExjUfKHhTxoSA18UhIPT6HlU+US5Zb2AVRDiHe/q5qgoz1nxxEv44EPtDlZkw==",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "10.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.0",

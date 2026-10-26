@@ -211,7 +211,7 @@
           "CodeHollow.FeedReader": "[1.2.6, )",
           "FFMpegCore": "[5.5.0, )",
           "PodScrub.Domain": "[1.0.0, )",
-          "SoundFingerprinting": "[15.15.0, )",
+          "SoundFingerprinting": "[15.16.0, )",
           "SoundFingerprinting.Emy": "[15.15.0, )"
         }
       },
@@ -232,9 +232,9 @@
       },
       "SoundFingerprinting": {
         "type": "CentralTransitive",
-        "requested": "[15.15.0, )",
-        "resolved": "15.15.0",
-        "contentHash": "WUAjdLOcTxdAMEucJi3zqRHOeiM60y6OdVYb1840pRIqpQjIDsT3LkzXy69ca/cbIGURbaI25MJsAYNUR6FKow==",
+        "requested": "[15.16.0, )",
+        "resolved": "15.16.0",
+        "contentHash": "+mH5hQeqZSrtunfTz2pZtRwsBExjUfKHhTxoSA18UhIPT6HlU+US5Zb2AVRDiHe/q5qgoz1nxxEv44EPtDlZkw==",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "10.0.0",
           "protobuf-net": "2.4.6"
