@@ -42,12 +42,11 @@ public class ProcessEpisodeUseCaseTests
         await File.WriteAllTextAsync(wavFile, "fake wav content");
         audioProcessor.ConvertToWavAsync(originalFile, Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(wavFile);
         audioProcessor.RemoveSegmentsAsync(Arg.Any<string>(), Arg.Any<IReadOnlyList<Interlude>>(), Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
-            .Returns(callInfo =>
+            .Returns(async callInfo =>
             {
                 var outputPath = callInfo.ArgAt<string>(2);
                 Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-                File.WriteAllText(outputPath, "processed content");
-                return Task.CompletedTask;
+                await File.WriteAllTextAsync(outputPath, "processed content", callInfo.ArgAt<CancellationToken>(4));
             });
 
         var (jingles, interludeStartJingle, interludeEndJingle) = CreateJinglesWithPaths(tempDir);
