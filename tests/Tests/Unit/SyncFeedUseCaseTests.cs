@@ -297,6 +297,36 @@ public class SyncFeedUseCaseTests
         fileSystem.DidNotReceive().DeleteFile(Arg.Any<string>());
     }
 
+    [Test]
+    public void ApplyRetentionPolicy_ProcessedAudioPathHasNoFeedDirectory_DoesNotAttemptDownloadsCleanup()
+    {
+        // Arrange
+        var fileSystem = Substitute.For<IFileSystem>();
+        fileSystem.FileExists(Arg.Any<string>()).Returns(true);
+        var useCase = new SyncFeedUseCase(
+            Substitute.For<IRssFeedReader>(),
+            CreateProcessEpisodeMock(),
+            CreateOptions(maxEpisodesPerFeed: 1),
+            fileSystem,
+            Substitute.For<Microsoft.Extensions.Logging.ILogger<SyncFeedUseCase>>());
+
+        // A processed path directly under the filesystem root has no feed directory to navigate up to.
+        var oldEpisode = new Episode("ep-1", "test", "Episode 1", "https://example.com/ep1.mp3", DateTimeOffset.UtcNow.AddDays(-2));
+        oldEpisode.MarkProcessed("/ep-1.mp3");
+        var episodes = new List<Episode>
+        {
+            oldEpisode,
+            new("ep-2", "test", "Episode 2", "https://example.com/ep2.mp3", DateTimeOffset.UtcNow.AddDays(-1)),
+        };
+
+        // Act
+        useCase.ApplyRetentionPolicy(episodes);
+
+        // Assert
+        fileSystem.Received(1).DeleteFile("/ep-1.mp3");
+        fileSystem.DidNotReceive().DeleteFile(Arg.Is<string>(path => path.Contains("downloads", StringComparison.Ordinal)));
+    }
+
     private static IOptions<PodScrubOptions> CreateOptions(int maxEpisodesPerFeed = 50) =>
         Options.Create(new PodScrubOptions { MaxEpisodesPerFeed = maxEpisodesPerFeed });
 
